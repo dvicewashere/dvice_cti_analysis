@@ -1,0 +1,10 @@
+Admin hesabı:
+
+username: Dvice
+password : harunseker
+
+
+Analist kullanıcı:
+
+username: analist
+password : analiz123
