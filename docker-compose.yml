@@ -1,0 +1,83 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: cti_postgres
+    environment:
+      POSTGRES_DB: dvice
+      POSTGRES_USER: dvice
+      POSTGRES_PASSWORD: dvice
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - cti_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dvice -d dvice"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  go_collector:
+    build:
+      context: ./backend/go_collector
+      dockerfile: Dockerfile
+    container_name: cti_collector
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: dvice
+      DB_PASSWORD: dvice
+      DB_NAME: dvice
+      TOR_PROXY: socks5://tor:9050
+      SAFE_MODE: "false"
+    networks:
+      - cti_network
+    volumes:
+      - ./backend/go_collector:/app
+      - ./frontend/output:/root/output
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+
+  tor:
+    image: dperson/torproxy:latest
+    container_name: cti_tor
+    networks:
+      - cti_network
+    ports:
+      - "9050:9050"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cti_frontend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: dvice
+      DB_PASSWORD: dvice
+      DB_NAME: dvice
+    ports:
+      - "8080:80"
+    networks:
+      - cti_network
+    volumes:
+      - ./frontend:/var/www/html
+      - ./backend:/var/www/backend
+      - ./frontend/output:/var/www/html/output
+    restart: unless-stopped
+
+networks:
+  cti_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
