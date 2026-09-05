@@ -57,8 +57,8 @@ Dvice CTI, onion ağları başta olmak üzere farklı kaynaklardan siber tehdit 
 ### Hızlı Başlangıç
 1.  **Depoyu Klonlayın**
     ```bash
-    git clone https://github.com/dvicewashere/dvice_cti_analysis
-    cd dvice_cti_analysis
+    git clone https://github.com/dvicewashere/dvice-cti-analysis
+    cd dvice-cti-analysis
     ```
 
 2.  **Servisleri Başlatın**
